@@ -24,55 +24,26 @@ fn word_to_digit(word: &str) -> Option<u32> {
     }
 }
 
-fn first_last_digit_to_int(s: &str) -> Option<u32> {
-    let two_numbers = Regex::new(r"(?P<first>\d).*(?P<last>\d)").unwrap();
+fn first_last_to_int(s: &str, reg: &Regex) -> Option<u32> {
+    let matches: Vec<_> = reg.find_iter(s).collect();
 
-    let one_number = Regex::new(r"(?P<one>\d)").unwrap();
-
-    match two_numbers.captures(s) {
-        Some(caps) => {
-            word_to_digit(&caps["first"]).and_then(|first| {
-                word_to_digit(&caps["last"]).map(|last| first * 10 + last)
+    matches.first().and_then(|first_match| {
+        word_to_digit(first_match.as_str()).and_then(|first| {
+            matches.last().and_then(|last_match| {
+                word_to_digit(last_match.as_str()).map(|last| first * 10 + last)
             })
-        }
-        _ => {
-            one_number.captures(s)
-                .and_then(|caps| {
-                    word_to_digit(&caps["one"]).map(|one| one * 10 + one)
-                })
-        }
-    }
-}
-
-fn first_last_digit_and_words_to_int(s: &str) -> Option<u32> {
-    let two_numbers = Regex::new(
-        r"(?P<first>\d|one|two|three|four|five|six|seven|eight|nine).*(?P<last>\d|one|two|three|four|five|six|seven|eight|nine)"
-    ).unwrap();
-
-    let one_number = Regex::new(
-        r"(?P<one>\d|one|two|three|four|five|six|seven|eight|nine)"
-    ).unwrap();
-
-    match two_numbers.captures(s) {
-        Some(caps) => {
-            word_to_digit(&caps["first"]).and_then(|first| {
-                word_to_digit(&caps["last"]).map(|last| first * 10 + last)
-            })
-        }
-        _ => {
-            one_number.captures(s)
-                .and_then(|caps| {
-                    word_to_digit(&caps["one"]).map(|one| one * 10 + one)
-                })
-        }
-    }
+        })
+    })
 }
 
 #[aoc_generator(day1, part1)]
 pub fn generator1(input: &str) -> Vec<u32> {
+    let pattern = Regex::new(r"(\d)").unwrap();
+
     return input
         .lines()
-        .filter_map(|line| first_last_digit_to_int(line)).collect();
+        .filter_map(|line| first_last_to_int(line, &pattern))
+        .collect();
 }
 
 #[aoc(day1, part1)]
@@ -82,9 +53,12 @@ pub fn solver_part1(input: &Vec<u32>) -> u32 {
 
 #[aoc_generator(day1, part2)]
 pub fn generator2(input: &str) -> Vec<u32> {
+    let pattern = Regex::new(r"(\d|one|two|three|four|five|six|seven|eight|nine)").unwrap();
+
     return input
         .lines()
-        .filter_map(|line| first_last_digit_and_words_to_int(line)).collect();
+        .filter_map(|line| first_last_to_int(line, &pattern))
+        .collect();
 }
 
 #[aoc(day1, part2)]
